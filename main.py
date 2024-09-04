@@ -38,6 +38,9 @@ def setup_game_launch(window, clock, dt, player):
             # draw shape
             player.draw(window)
 
+            # rotate & move - self position
+            player.update(dt)
+
             # ------------------------------- UPDATE FRAMES ------------------------------ #
 
             # update screen with changes
