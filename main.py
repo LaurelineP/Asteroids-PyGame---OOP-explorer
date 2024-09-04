@@ -10,7 +10,8 @@ def main():
     print("Screen height:", SCREEN_HEIGHT)
     window = init_game()
     clock, dt = set_timer()
-    player = create_player()
+    updatable, drawable = create_updatable_and_drawable_groups()
+    player = create_player(drawable, updatable)
 
     setup_game_launch(window, clock, dt, player)
 
@@ -35,12 +36,14 @@ def setup_game_launch(window, clock, dt, player):
             pygame.Surface.fill(window, color='black')
             # ----------------------------- CHANGES TO APPLY ----------------------------- #
 
-            # draw shape
-            player.draw(window)
+            for thing in player.containers[1]:
+                # apply updates
+                thing.update(dt)
 
-            # rotate & move - self position
-            player.update(dt)
-
+            # Group encapsulation
+            for thing in player.containers[0]:
+                # draw shapes
+                thing.draw(window)
             # ------------------------------- UPDATE FRAMES ------------------------------ #
 
             # update screen with changes
@@ -60,11 +63,18 @@ def set_timer():
     return clock, dt
 
 
-def create_player():
+def create_player(updatable, drawable):
     x = SCREEN_WIDTH / 2
     y = SCREEN_HEIGHT / 2
+    Player.containers = (updatable, drawable)
     player = Player(x, y)
     return player
+
+
+def create_updatable_and_drawable_groups():
+    drawable = pygame.sprite.Group()
+    updatable = pygame.sprite.Group()
+    return updatable, drawable
 
 
 if __name__ == "__main__":
