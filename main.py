@@ -59,6 +59,11 @@ def setup_game_launch(window, clock, dt, player, groups):
                 # apply updates
                 thing.update(dt)
 
+            for asteroid in groups["asteroids"]:
+                is_colliding = asteroid.is_colliding(player)
+                if is_colliding:
+                    print('Game over!')
+
             for thing in groups['drawables']:
                 # draw shapes
                 thing.draw(window)
