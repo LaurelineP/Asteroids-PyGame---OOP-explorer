@@ -1,5 +1,7 @@
 import pygame
 
+from asteroid import Asteroid
+from asteroidfield import AsteroidField
 from constants import *
 from player import Player
 
@@ -10,10 +12,27 @@ def main():
     print("Screen height:", SCREEN_HEIGHT)
     window = init_game()
     clock, dt = set_timer()
-    updatable, drawable = create_updatable_and_drawable_groups()
-    player = create_player(drawable, updatable)
 
-    setup_game_launch(window, clock, dt, player)
+    # groups creation - reduce perf cost
+    drawables = pygame.sprite.Group()
+    updatables = pygame.sprite.Group()
+    asteroids = pygame.sprite.Group()
+
+    # groups
+    player_groups = (drawables, updatables)
+    asteroid_groups = (asteroids, *player_groups)
+
+    player = create_player(player_groups)
+    set_asteroids_containers(asteroid_groups)
+    asteroid_field = create_asteroid_field(updatables)
+
+    groups = {
+        "drawables": drawables,
+        "updatables": updatables,
+        "asteroids": asteroids
+    }
+
+    setup_game_launch(window, clock, dt, player, groups)
 
 
 def init_game() -> pygame.surface.Surface:
@@ -23,7 +42,7 @@ def init_game() -> pygame.surface.Surface:
     return window
 
 
-def setup_game_launch(window, clock, dt, player):
+def setup_game_launch(window, clock, dt, player, groups):
     try:
         while True:
             # short circuit if user quits - enable close window btn
@@ -36,14 +55,14 @@ def setup_game_launch(window, clock, dt, player):
             pygame.Surface.fill(window, color='black')
             # ----------------------------- CHANGES TO APPLY ----------------------------- #
 
-            for thing in player.containers[1]:
+            for thing in groups['updatables']:
                 # apply updates
                 thing.update(dt)
 
-            # Group encapsulation
-            for thing in player.containers[0]:
+            for thing in groups['drawables']:
                 # draw shapes
                 thing.draw(window)
+
             # ------------------------------- UPDATE FRAMES ------------------------------ #
 
             # update screen with changes
@@ -63,18 +82,22 @@ def set_timer():
     return clock, dt
 
 
-def create_player(updatable, drawable):
+def create_player(containers):
     x = SCREEN_WIDTH / 2
     y = SCREEN_HEIGHT / 2
-    Player.containers = (updatable, drawable)
+    Player.containers = containers
     player = Player(x, y)
     return player
 
 
-def create_updatable_and_drawable_groups():
-    drawable = pygame.sprite.Group()
-    updatable = pygame.sprite.Group()
-    return updatable, drawable
+def set_asteroids_containers(containers):
+    Asteroid.containers = containers
+
+
+def create_asteroid_field(containers):
+    AsteroidField.containers = containers
+    asteroid_field = AsteroidField()
+    return asteroid_field
 
 
 if __name__ == "__main__":
