@@ -4,12 +4,10 @@ from asteroid import Asteroid
 from asteroidfield import AsteroidField
 from constants import *
 from player import Player
+from shot import Shot
 
 
 def main():
-    print("Starting asteroids!")
-    print("Screen width:", SCREEN_WIDTH)
-    print("Screen height:", SCREEN_HEIGHT)
     window = init_game()
     clock, dt = set_timer()
 
@@ -17,19 +15,24 @@ def main():
     drawables = pygame.sprite.Group()
     updatables = pygame.sprite.Group()
     asteroids = pygame.sprite.Group()
+    shots = pygame.sprite.Group()
 
-    # groups
+    # groups containers
     player_groups = (drawables, updatables)
     asteroid_groups = (asteroids, *player_groups)
+    shot_groups = (shots, *player_groups)
 
+    # instantiation and setup
     player = create_player(player_groups)
-    set_asteroids_containers(asteroid_groups)
+    set_element_containers(Asteroid, asteroid_groups)
+    set_element_containers(Shot, shot_groups)
     asteroid_field = create_asteroid_field(updatables)
 
     groups = {
         "drawables": drawables,
         "updatables": updatables,
-        "asteroids": asteroids
+        "asteroids": asteroids,
+        "shots": shots
     }
 
     setup_game_launch(window, clock, dt, player, groups)
@@ -48,7 +51,7 @@ def setup_game_launch(window, clock, dt, player, groups):
             # short circuit if user quits - enable close window btn
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    print("User quitted the game")
+                    print("User quitted the game.")
                     return
 
                     # change background color
@@ -87,22 +90,26 @@ def set_timer():
     return clock, dt
 
 
+# ------------------------- INSTANCES WITH CONTAINERS ------------------------ #
+
 def create_player(containers):
     x = SCREEN_WIDTH / 2
     y = SCREEN_HEIGHT / 2
     Player.containers = containers
-    player = Player(x, y)
+    player = Player(x, y, PLAYER_RADIUS)
     return player
-
-
-def set_asteroids_containers(containers):
-    Asteroid.containers = containers
 
 
 def create_asteroid_field(containers):
     AsteroidField.containers = containers
     asteroid_field = AsteroidField()
     return asteroid_field
+
+# ------------------------- UPDATE GROUPS CONTAINERS ------------------------- #
+
+
+def set_element_containers(Element, containers):
+    Element.containers = containers
 
 
 if __name__ == "__main__":
