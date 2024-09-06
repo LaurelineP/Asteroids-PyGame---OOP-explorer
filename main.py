@@ -21,21 +21,20 @@ def main():
     player_groups = (drawables, updatables)
     asteroid_groups = (asteroids, *player_groups)
     shot_groups = (shots, *player_groups)
-
-    # instantiation and setup
-    player = create_player(player_groups)
-    set_element_containers(Asteroid, asteroid_groups)
-    set_element_containers(Shot, shot_groups)
-    asteroid_field = create_asteroid_field(updatables)
-
-    groups = {
+    entities_groups = {
         "drawables": drawables,
         "updatables": updatables,
         "asteroids": asteroids,
         "shots": shots
     }
 
-    setup_game_launch(window, clock, dt, player, groups)
+    # instantiation and setup
+    player = create_player(player_groups)
+    set_element_containers(Asteroid, asteroid_groups)
+    set_element_containers(Shot, shot_groups)
+    create_asteroid_field(updatables)
+
+    setup_game_launch(window, clock, dt, player, entities_groups)
 
 
 def init_game() -> pygame.surface.Surface:
@@ -45,7 +44,7 @@ def init_game() -> pygame.surface.Surface:
     return window
 
 
-def setup_game_launch(window, clock, dt, player, groups):
+def setup_game_launch(window, clock, dt, player, entities_groups):
     try:
         while True:
             # short circuit if user quits - enable close window btn
@@ -58,22 +57,23 @@ def setup_game_launch(window, clock, dt, player, groups):
             pygame.Surface.fill(window, color='black')
             # ----------------------------- CHANGES TO APPLY ----------------------------- #
 
-            for thing in groups['updatables']:
+            for thing in entities_groups['updatables']:
                 # apply updates
                 thing.update(dt)
 
-            for asteroid in groups["asteroids"]:
+            for asteroid in entities_groups["asteroids"]:
                 is_colliding = asteroid.is_colliding(player)
                 if is_colliding:
                     print('Game over!')
+                    return
 
-                for bullet in groups["shots"]:
+                for bullet in entities_groups["shots"]:
                     is_bullet_colliding = asteroid.is_colliding(bullet)
                     if is_bullet_colliding:
-                        asteroid.kill()
+                        asteroid.split()
                         bullet.kill()
 
-            for thing in groups['drawables']:
+            for thing in entities_groups['drawables']:
                 # draw shapes
                 thing.draw(window)
 
@@ -86,7 +86,7 @@ def setup_game_launch(window, clock, dt, player, groups):
             dt = clock.tick(60) / 1000
 
     except KeyboardInterrupt:
-        print("Keyboard quitted the game")
+        print("Keyboard quitted the game.")
         return
 
 
